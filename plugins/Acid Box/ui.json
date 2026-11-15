@@ -1,5 +1,5 @@
 {
-  "kit": "amber",
+  "kit": { "theme": "mono", "accent": "ff2a2c30" },
   "pages": [
     { "name": "ACID",
       "controls": [
@@ -11,7 +11,7 @@
         { "param": "Drive",      "widget": "knob" },
         { "param": "Slide Time", "widget": "knob" },
         { "param": "Slide",      "widget": "switch" },
-        { "param": "Wave",       "widget": "switch" },
+        { "param": "Waveform",   "widget": "switch" },
         { "param": "Volume",     "widget": "fader" },
         { "widget": "empty" },
         { "widget": "empty" }
@@ -23,5 +23,6 @@
         { "param": "Acc Thresh", "widget": "knob" },
         { "param": "Gate Rel",   "widget": "knob" }
       ] }
-  ]
+  ],
+  "style": { "background": "ff9ea1a6", "accent": "ff2a2c30", "text": "ff111214", "muted": "ff33353a" }
 }

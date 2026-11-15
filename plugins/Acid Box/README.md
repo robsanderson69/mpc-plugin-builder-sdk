@@ -27,7 +27,7 @@ Page ACID:
 | Drive | 0 – 100 % | Output saturation |
 | Slide Time | 5 – 500 ms | Glide time for slid notes |
 | Slide | on/off | Overlapping notes glide instead of retriggering |
-| Wave | Saw / Square | Oscillator waveform |
+| Waveform | Saw / Square | Oscillator waveform (switch) |
 | Volume | -40 – +6 dB | Master volume (parameter 0) |
 
 Page MORE: Tune (±100 cents), Octave (-2 – +2), Acc Thresh (velocity 1 – 127), Gate Rel (3 – 500 ms amp release).
@@ -39,7 +39,16 @@ There are 8 built-in programs: Init Acid, Classic Line, Squelch, Square Bass, Su
 - The filter is a 4-pole ladder with the output taken after pole 3 and a tanh in the feedback path. It is tuned by ear to behave like an acid filter, not modelled component by component, so it will sound close in character but not identical to any specific machine.
 - The filter runs at the host sample rate with no oversampling. At the highest resonance and cutoff settings it can sound slightly harsher than a hardware filter.
 - No built-in sequencer: play it from an MPC sequence or pad/keyboard. Plugins cannot send MIDI back to the MPC.
-- CPU: one voice, filter coefficients updated every 8 samples; expected to be a very small part of one core. This has been measured only on a desktop CPU with the host simulator, not on MPC hardware.
+- CPU: one voice. Envelope and glide coefficients are computed once per block and the filter coefficients every 8 samples, so there is no per-sample `exp`/`tan` in the audio loop. Expected to be a very small part of one core; measured only on a desktop CPU with the host simulator, not on MPC hardware.
+
+## Silver look
+
+The touch skin uses a silver panel with silver knobs, fader caps and buttons (charcoal value arcs and pointers). The SDK's UI kit only recolours the accent, so `make_silver_skin.py` generates the layout with `tools/gen_ui.py` and then redraws the control graphics in silver at the same sizes. `skins/` is copied verbatim by the build; after changing `ui.json` or the parameters, run:
+
+```
+python tools/build.py "plugins/Acid Box" --target native
+python "plugins/Acid Box/make_silver_skin.py"
+```
 
 ## Build
 

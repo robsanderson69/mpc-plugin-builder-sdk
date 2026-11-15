@@ -1,0 +1,183 @@
+{
+  "name": "Acid Box",
+  "vendor": "RS",
+  "uid": "R7y3",
+  "uidInt": 1379367219,
+  "version": 1000,
+  "isInstrument": true,
+  "numInputs": 0,
+  "numOutputs": 2,
+  "numPrograms": 8,
+  "programs": [
+    "Init Acid",
+    "Classic Line",
+    "Squelch",
+    "Square Bass",
+    "Sub Pump",
+    "Wide Open",
+    "Zap",
+    "Slidey"
+  ],
+  "params": [
+    {
+      "index": 0,
+      "id": null,
+      "name": "Volume",
+      "label": "dB",
+      "display": "-6.0",
+      "default": 0.73913,
+      "automatable": true,
+      "kind": "float",
+      "choices": []
+    },
+    {
+      "index": 1,
+      "id": null,
+      "name": "Waveform",
+      "label": "",
+      "display": "Saw",
+      "default": 0.0,
+      "automatable": true,
+      "kind": "choice",
+      "choices": [
+        "Saw",
+        "Square"
+      ]
+    },
+    {
+      "index": 2,
+      "id": null,
+      "name": "Cutoff",
+      "label": "Hz",
+      "display": "500",
+      "default": 0.433339,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 3,
+      "id": null,
+      "name": "Reso",
+      "label": "%",
+      "display": "60",
+      "default": 0.6,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 4,
+      "id": null,
+      "name": "Env Mod",
+      "label": "%",
+      "display": "60",
+      "default": 0.6,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 5,
+      "id": null,
+      "name": "Decay",
+      "label": "ms",
+      "display": "350",
+      "default": 0.555465,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 6,
+      "id": null,
+      "name": "Accent",
+      "label": "%",
+      "display": "70",
+      "default": 0.7,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 7,
+      "id": null,
+      "name": "Drive",
+      "label": "%",
+      "display": "20",
+      "default": 0.2,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 8,
+      "id": null,
+      "name": "Slide Time",
+      "label": "ms",
+      "display": "60",
+      "default": 0.539591,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 9,
+      "id": null,
+      "name": "Slide",
+      "label": "",
+      "display": "On",
+      "default": 1.0,
+      "automatable": true,
+      "kind": "bool",
+      "choices": [
+        "Off",
+        "On"
+      ]
+    },
+    {
+      "index": 10,
+      "id": null,
+      "name": "Tune",
+      "label": "ct",
+      "display": "0",
+      "default": 0.5,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 11,
+      "id": null,
+      "name": "Octave",
+      "label": "oct",
+      "display": "0",
+      "default": 0.5,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 12,
+      "id": null,
+      "name": "Acc Thresh",
+      "label": "",
+      "display": "100",
+      "default": 0.785714,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    },
+    {
+      "index": 13,
+      "id": null,
+      "name": "Gate Rel",
+      "label": "ms",
+      "display": "15",
+      "default": 0.314589,
+      "automatable": true,
+      "kind": "int",
+      "choices": []
+    }
+  ]
+}

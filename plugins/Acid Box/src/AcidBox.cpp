@@ -103,7 +103,7 @@ public:
     AcidBox() : mpc::Plugin(makeInfo())
     {
         addParam(mpc::floatParam("volume",    "Volume",    -40.0f, 6.0f,   -6.0f,  "dB", 1));
-        addParam(mpc::choiceParam("wave",     "Wave",      {"Saw", "Square"}, 0));
+        addParam(mpc::choiceParam("wave",     "Waveform",  {"Saw", "Square"}, 0));   // id stays "wave" (permanent)
         addParam(mpc::logParam  ("cutoff",    "Cutoff",    60.0f, 8000.0f, 500.0f, "Hz", 0));
         addParam(mpc::floatParam("resonance", "Reso",      0.0f, 100.0f,   60.0f,  "%",  0));
         addParam(mpc::floatParam("envmod",    "Env Mod",   0.0f, 100.0f,   60.0f,  "%",  0));
@@ -184,6 +184,14 @@ public:
         const float driveGain  = 1.0f + 7.0f * driveAmt;
         const float driveNorm  = 1.0f / mpc::dsp::fastTanh(driveGain);
 
+        // Filter-envelope decay coefficients, computed once per block (not per sample).
+        // Accented notes decay faster: their decay time is capped at 200 ms.
+        auto decayCoefFor = [this](float ms) {
+            return 1.0f - std::exp(-1.0f / std::fmax(1.0f, ms * 0.001f * sampleRate_ * 0.35f));
+        };
+        const float filtDecayCoefNormal = decayCoefFor(decayMs);
+        const float filtDecayCoefAccent = decayCoefFor(std::fmin(decayMs, 200.0f));
+
         int midiIndex = 0;
         for (int i = 0; i < numFrames; ++i)
         {
@@ -194,9 +202,7 @@ public:
                 ++midiIndex;
             }
 
-            // Filter-envelope decay time depends on accent: accented notes decay faster.
-            const float effDecayMs = accented_ ? std::fmin(decayMs, 200.0f) : decayMs;
-            const float filtDecayCoef = 1.0f - std::exp(-1.0f / std::fmax(1.0f, effDecayMs * 0.001f * sampleRate_ * 0.35f));
+            const float filtDecayCoef = accented_ ? filtDecayCoefAccent : filtDecayCoefNormal;
 
             // ---- pitch glide ----
             curNote_ += slideCoef * (targetNote_ - curNote_);
