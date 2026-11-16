@@ -19,10 +19,10 @@ Page ACID:
 
 | Name | Range | What it does |
 |---|---|---|
-| Cutoff | 60 – 8000 Hz | Base filter cutoff |
+| Cutoff | 20 – 12000 Hz | Base filter cutoff |
 | Reso | 0 – 100 % | Filter resonance (self-oscillation is not intended; high values squelch) |
-| Env Mod | 0 – 100 % | How far the filter envelope opens the cutoff (up to 5 octaves) |
-| Decay | 30 – 2500 ms | Filter envelope decay (accented notes cap at 200 ms) |
+| Env Mod | 0 – 100 % | How far the filter envelope opens the cutoff (up to 8 octaves) |
+| Decay | 20 – 8000 ms | Filter envelope decay (accented notes cap at about 200 ms) |
 | Accent | 0 – 100 % | Strength of accented notes |
 | Drive | 0 – 100 % | Output saturation |
 | Slide Time | 5 – 500 ms | Glide time for slid notes |
@@ -34,9 +34,15 @@ Page MORE: Tune (±100 cents), Octave (-2 – +2), Acc Thresh (velocity 1 – 12
 
 There are 8 built-in programs: Init Acid, Classic Line, Squelch, Square Bass, Sub Pump, Wide Open, Zap, Slidey.
 
+## Sound matching
+
+The DSP constants were fitted against five reference recordings of a real hardware unit (sets A1-E1, all C2 notes, normal and accented). For each note the harmonic levels H1-H32 were measured at eight times after note-on and compared with the plugin's output. Measured and fitted: output high-pass (about 200 Hz), slow amp-envelope droop (about 2.3 s normal, 1.3 s accented), accent level boost (about 6.5 dB, decaying in 50 ms), resonance feedback gain and loop high-pass, a filter cutoff ceiling (about 2.3 kHz), a filter envelope range up to 8 octaves with a fast accented decay, and a partial 24 dB/oct output tap.
+
+Result: mean error over 16 reference notes is about 1.9 dB rms across the first 24 harmonics (best note 0.4 dB, worst 3.3 dB). Only these measurable spectral features were matched. It is not proven identical to the hardware, pitches other than C2 were not measured, and it has not been tested on a real MPC. Presets were not re-voiced.
+
 ## Notes and limitations
 
-- The filter is a 4-pole ladder with the output taken after pole 3 and a tanh in the feedback path. It is tuned by ear to behave like an acid filter, not modelled component by component, so it will sound close in character but not identical to any specific machine.
+- The filter is a 4-pole ladder with the output mostly taken after pole 3 and a tanh in the feedback path. It is fitted to reference recordings (see Sound matching), not modelled component by component, so it will sound close in character but not identical.
 - The filter runs at the host sample rate with no oversampling. At the highest resonance and cutoff settings it can sound slightly harsher than a hardware filter.
 - No built-in sequencer: play it from an MPC sequence or pad/keyboard. Plugins cannot send MIDI back to the MPC.
 - CPU: one voice. Envelope and glide coefficients are computed once per block and the filter coefficients every 8 samples, so there is no per-sample `exp`/`tan` in the audio loop. Expected to be a very small part of one core; measured only on a desktop CPU with the host simulator, not on MPC hardware.

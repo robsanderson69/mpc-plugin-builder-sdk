@@ -29,6 +29,29 @@
 
 #include <cmath>
 
+// ---- sound constants, fitted against the five hardware reference recordings ----
+// (measured harmonic levels at fixed times after note-on; see README "Sound matching").
+namespace tn {
+constexpr float kOutHpHz = 203.60256f;
+constexpr float kVcaTauNormal = 2.32265f;
+constexpr float kVcaTauAccent = 1.30688f;
+constexpr float kAccBoostDb = 6.45779f;
+constexpr float kAccBoostTau = 0.05100f;
+constexpr float kLadderMaxK = 4.20644f;
+constexpr float kFbScale = 0.56531f;
+constexpr float kMakeup = 0.40498f;
+constexpr float kEnvOctaves = 8.00000f;
+constexpr float kAccDecayCapMs = 208.41596f;
+constexpr float kEnvTauFactor = 0.33910f;
+constexpr float kAccExtraDepth = 0.67940f;
+constexpr float kCutoffMul = 1.00000f;
+constexpr float kOscLevel = 0.70000f;
+constexpr float kFilterDrive = 1.00000f;
+constexpr float kLoopHpHz = 92.22655f;
+constexpr float kMaxCutoffHz = 2345.66774f;
+constexpr float kTapBlend = 0.21785f;
+} // namespace tn
+
 namespace {
 
 // ---------------------------------------------------------------------------
@@ -56,7 +79,6 @@ enum ParamIndex
 
 constexpr int   kMaxHeld   = 16;
 constexpr int   kCtrlRate  = 8;       // filter coefficients are updated every 8 samples
-constexpr float kEnvOctaves = 5.0f;   // cutoff sweep range at EnvMod = 100 %
 
 // 4-pole zero-delay-feedback ladder low-pass. Output is tapped after pole 3
 // (18 dB/oct). Resonance feeds pole 4 back to the input through a tanh.
@@ -65,23 +87,26 @@ struct Ladder
     float s[4] = {0, 0, 0, 0};
     float G = 0.1f;       // g / (1 + g)
     float k = 0.0f;       // feedback amount 0..~4.2
+    float fbLp = 0.0f, fbA = 0.01f;
 
-    void reset() { for (float& x : s) x = 0.0f; }
+    void reset() { for (float& x : s) x = 0.0f; fbLp = 0.0f; }
 
     void setCoeffs(float cutoffHz, float resonance01, float sampleRate)
     {
-        const float fc = mpc::clamp(cutoffHz, 20.0f, 0.32f * sampleRate);
+        const float fc = mpc::clamp(cutoffHz, 20.0f, std::fmin(tn::kMaxCutoffHz, 0.32f * sampleRate));
+        fbA = 1.0f - std::exp(-2.0f * mpc::dsp::kPi * tn::kLoopHpHz / sampleRate);
         const float g = std::tan(mpc::dsp::kPi * fc / sampleRate);
         G = g / (1.0f + g);
-        k = 4.2f * mpc::clamp(resonance01, 0.0f, 1.0f);
+        k = tn::kLadderMaxK * mpc::clamp(resonance01, 0.0f, 1.0f);
     }
 
     float process(float x)
     {
         // Unit-delay feedback from the last pole (cheap, stable with the tanh).
-        const float fb = k * s[3] * 0.5f;           // s[3] approximates pole-4 output
-        float in = mpc::dsp::fastTanh(x - fb);
-        float y3 = 0.0f;
+        fbLp += fbA * (s[3] - fbLp);
+        const float fb = k * (s[3] - fbLp) * tn::kFbScale;           // s[3] approximates pole-4 output
+        float in = mpc::dsp::fastTanh((x - fb) * tn::kFilterDrive);
+        float y3 = 0.0f, y4 = 0.0f;
         for (int i = 0; i < 4; ++i)
         {
             const float v = (in - s[i]) * G;
@@ -89,9 +114,11 @@ struct Ladder
             s[i] = lp + v;
             in = lp;
             if (i == 2) y3 = lp;
+            if (i == 3) y4 = lp;
         }
+        y3 += tn::kTapBlend * (y4 - y3);
         // Make up some of the low-frequency level that resonance removes.
-        return y3 * (1.0f + 0.35f * k);
+        return y3 * (1.0f + tn::kMakeup * k);
     }
 };
 
@@ -104,10 +131,10 @@ public:
     {
         addParam(mpc::floatParam("volume",    "Volume",    -40.0f, 6.0f,   -6.0f,  "dB", 1));
         addParam(mpc::choiceParam("wave",     "Waveform",  {"Saw", "Square"}, 0));   // id stays "wave" (permanent)
-        addParam(mpc::logParam  ("cutoff",    "Cutoff",    60.0f, 8000.0f, 500.0f, "Hz", 0));
+        addParam(mpc::logParam  ("cutoff",    "Cutoff",    20.0f, 12000.0f, 500.0f, "Hz", 0));
         addParam(mpc::floatParam("resonance", "Reso",      0.0f, 100.0f,   60.0f,  "%",  0));
         addParam(mpc::floatParam("envmod",    "Env Mod",   0.0f, 100.0f,   60.0f,  "%",  0));
-        addParam(mpc::logParam  ("decay",     "Decay",     30.0f, 2500.0f, 350.0f, "ms", 0));
+        addParam(mpc::logParam  ("decay",     "Decay",     20.0f, 8000.0f, 350.0f, "ms", 0));
         addParam(mpc::floatParam("accent",    "Accent",    0.0f, 100.0f,   70.0f,  "%",  0));
         addParam(mpc::floatParam("drive",     "Drive",     0.0f, 100.0f,   20.0f,  "%",  0));
         addParam(mpc::logParam  ("slidetime", "Slide Time", 5.0f, 500.0f,  60.0f,  "ms", 0));
@@ -150,6 +177,7 @@ public:
         targetNote_ = 48.0f;
         bend_ = 0.0f;
         accented_ = false;
+        hpLp_ = 0.0f; vegAttack_ = false;
         smoothedGain_ = mpc::dsp::dbToGain(get(kVolume));
         osc_.resetPhase(0.0f);
         ctrlCount_ = 0;
@@ -187,10 +215,15 @@ public:
         // Filter-envelope decay coefficients, computed once per block (not per sample).
         // Accented notes decay faster: their decay time is capped at 200 ms.
         auto decayCoefFor = [this](float ms) {
-            return 1.0f - std::exp(-1.0f / std::fmax(1.0f, ms * 0.001f * sampleRate_ * 0.35f));
+            return 1.0f - std::exp(-1.0f / std::fmax(1.0f, ms * 0.001f * sampleRate_ * tn::kEnvTauFactor));
         };
         const float filtDecayCoefNormal = decayCoefFor(decayMs);
-        const float filtDecayCoefAccent = decayCoefFor(std::fmin(decayMs, 200.0f));
+        const float filtDecayCoefAccent = decayCoefFor(std::fmin(decayMs, tn::kAccDecayCapMs));
+        const float vegMulNormal = std::exp(-1.0f / (tn::kVcaTauNormal * sampleRate_));
+        const float vegMulAccent = std::exp(-1.0f / (tn::kVcaTauAccent * sampleRate_));
+        const float accBoostDecay = std::exp(-1.0f / (tn::kAccBoostTau * sampleRate_));
+        const float accBoostGain  = mpc::dsp::dbToGain(tn::kAccBoostDb * accentAmt) - 1.0f;
+        const float hpA = 1.0f - std::exp(-2.0f * mpc::dsp::kPi * tn::kOutHpHz / sampleRate_);
 
         int midiIndex = 0;
         for (int i = 0; i < numFrames; ++i)
@@ -208,29 +241,31 @@ public:
             curNote_ += slideCoef * (targetNote_ - curNote_);
 
             // ---- envelopes ----
-            if (gate_) { ampLevel_ += attackInc; if (ampLevel_ > 1.0f) ampLevel_ = 1.0f; }
+            if (gate_) { if (vegAttack_) { ampLevel_ += attackInc; if (ampLevel_ >= 1.0f) { ampLevel_ = 1.0f; vegAttack_ = false; } } else ampLevel_ *= (accented_ ? vegMulAccent : vegMulNormal); }
             else       { ampLevel_ -= releaseCoef * ampLevel_; if (ampLevel_ < 1.0e-5f) ampLevel_ = 0.0f; }
             filtEnv_  -= filtDecayCoef * filtEnv_;
             accentCap_ -= accentDecayCoef * accentCap_;
+            accentEnv_ *= accBoostDecay;
 
             // ---- control-rate filter update ----
             if (ctrlCount_-- <= 0)
             {
                 ctrlCount_ = kCtrlRate - 1;
                 const float accentNow = accented_ ? accentAmt * (0.7f + 0.6f * accentCap_) : 0.0f;
-                const float modDepth  = mpc::clamp(envMod + 0.6f * accentNow, 0.0f, 1.6f);
-                const float cutoff    = baseCutoff * std::exp2(filtEnv_ * modDepth * kEnvOctaves);
+                const float modDepth  = mpc::clamp(envMod + tn::kAccExtraDepth * accentNow, 0.0f, 1.6f);
+                const float cutoff    = tn::kCutoffMul * baseCutoff * std::exp2(filtEnv_ * modDepth * tn::kEnvOctaves);
                 const float resoNow   = mpc::clamp(reso + 0.15f * accentNow, 0.0f, 1.0f);
                 filter_.setCoeffs(cutoff, resoNow, sampleRate_);
-                accentGainNow_ = 1.0f + 0.7f * accentNow;
+                accentGainNow_ = 1.0f + accBoostGain * accentEnv_;
                 oscHz_ = mpc::noteToHz(curNote_ + tuneSemi + bend_ * 2.0f);
                 osc_.setFrequency(oscHz_);
             }
 
             // ---- sound ----
-            float x = osc_.process() * 0.7f;
+            float x = osc_.process() * tn::kOscLevel;
             float y = filter_.process(x);
             y *= ampLevel_ * accentGainNow_;
+            hpLp_ += hpA * (y - hpLp_); y -= hpLp_;
             y = mpc::dsp::fastTanh(y * driveGain) * driveNorm;
             y = mpc::dsp::sanitize(mpc::dsp::flushDenormal(y));
 
@@ -310,7 +345,8 @@ private:
                 filtEnv_ = 1.0f;
                 accented_ = accented;
                 if (accented) accentCap_ = accentCap_ + 0.4f * (1.0f - accentCap_);
-                if (!legato) ampLevel_ = 0.0f;   // fresh start for a clean attack
+                if (!legato) { ampLevel_ = 0.0f; vegAttack_ = true; }   // fresh start for a clean attack
+                if (accented) accentEnv_ = 1.0f;
             }
         }
         else if (e.isNoteOff())
@@ -344,6 +380,8 @@ private:
     float ampLevel_ = 0.0f, filtEnv_ = 0.0f, accentEnv_ = 0.0f, accentCap_ = 0.0f;
     float curNote_ = 48.0f, targetNote_ = 48.0f, bend_ = 0.0f, oscHz_ = 130.0f;
     float accentGainNow_ = 1.0f;
+    float hpLp_ = 0.0f;
+    bool  vegAttack_ = false;
     float smoothedGain_ = 0.5f;
     int   ctrlCount_ = 0;
 };
