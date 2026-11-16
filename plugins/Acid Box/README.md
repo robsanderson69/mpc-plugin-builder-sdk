@@ -38,7 +38,7 @@ There are 8 built-in programs: Init Acid, Classic Line, Squelch, Square Bass, Su
 
 The DSP constants were fitted against five reference recordings of a real hardware unit (sets A1-E1, all C2 notes, normal and accented). For each note the harmonic levels H1-H32 were measured at eight times after note-on and compared with the plugin's output. Measured and fitted: output high-pass (about 200 Hz), slow amp-envelope droop (about 2.3 s normal, 1.3 s accented), accent level boost (about 6.5 dB, decaying in 50 ms), resonance feedback gain and loop high-pass, a filter cutoff ceiling (about 2.3 kHz), a filter envelope range up to 8 octaves with a fast accented decay, and a partial 24 dB/oct output tap.
 
-Result: mean error over 16 reference notes is about 1.9 dB rms across the first 24 harmonics (best note 0.4 dB, worst 3.3 dB). Only these measurable spectral features were matched. It is not proven identical to the hardware, pitches other than C2 were not measured, and it has not been tested on a real MPC. Presets were not re-voiced.
+Result: mean error over 16 reference notes is about 1.9 dB rms across the first 24 harmonics (best note 0.4 dB, worst 3.3 dB). Only these measurable spectral features were matched. It is not proven identical to the hardware, pitches other than C2 were not measured, and it has not been tested on a real MPC. The 8 presets were re-voiced for this response: low base cutoffs, accent at 100 %, little or no drive, peak levels around -8 to -12 dBFS (the reference notes peak between -24 and -8.5 dBFS). The preset values are my judgement, not fitted per preset.
 
 ## Notes and limitations
 

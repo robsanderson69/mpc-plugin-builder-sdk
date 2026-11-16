@@ -146,14 +146,17 @@ public:
 
         // Program values, in parameter order:
         //  Vol  Wave Cutoff Reso EnvMod Decay Accent Drive SlideT Slide Tune Oct AccTh GateRel
-        addProgram("Init Acid",    {-6, 0,  500, 60, 60,  350, 70, 20,  60, 1, 0, 0, 100, 15});
-        addProgram("Classic Line", {-6, 0,  350, 75, 70,  300, 80, 25,  60, 1, 0, 0, 100, 12});
-        addProgram("Squelch",      {-7, 0,  250, 90, 85,  220, 90, 35,  50, 1, 0, 0, 90,  12});
-        addProgram("Square Bass",  {-6, 1,  420, 55, 55,  400, 60, 15,  70, 1, 0, -1, 100, 20});
-        addProgram("Sub Pump",     {-5, 1,  180, 35, 40,  500, 50, 10,  40, 0, 0, -1, 110, 30});
-        addProgram("Wide Open",    {-8, 0, 1200, 50, 40,  900, 60, 30,  90, 1, 0, 0, 100, 40});
-        addProgram("Zap",          {-7, 0,  900, 85, 95,   80, 100, 40, 30, 0, 0, 1, 80,  8});
-        addProgram("Slidey",       {-6, 0,  400, 70, 65,  600, 75, 25, 180, 1, 0, 0, 100, 25});
+        // Voiced against the hardware reference fit: low base cutoffs (the reference notes sit at
+        // about 25-650 Hz), long-ish decays for normal notes, accent at 100 % like the hardware's
+        // fixed accent circuit, and little or no drive (the hardware has none).
+        addProgram("Init Acid",    {-9, 0,  250, 60, 60,  600, 100,  0,  60, 1, 0,  0, 100, 15});
+        addProgram("Classic Line", {-9, 0,  180, 75, 70,  500, 100,  0,  60, 1, 0,  0, 100, 12});
+        addProgram("Squelch",      {-10, 0, 120, 92, 85,  300, 100,  5,  60, 1, 0,  0,  90, 12});
+        addProgram("Square Bass",  {-9, 1,  300, 50, 50,  700,  80,  0,  60, 1, 0, -1, 100, 20});
+        addProgram("Sub Pump",     {-8, 1,  100, 30, 40,  900,  70,  0,  40, 0, 0, -1, 110, 30});
+        addProgram("Wide Open",    {-9, 0,  700, 40, 40, 1500,  80,  5,  60, 1, 0,  0, 100, 40});
+        addProgram("Zap",          {-10, 0, 400, 85, 95,  150, 100, 10,  30, 0, 0,  1,  80,  8});
+        addProgram("Slidey",       {-9, 0,  250, 70, 65, 1000, 100,  0, 120, 1, 0,  0, 100, 25});
     }
 
     void prepare(double sampleRate, int maxBlockSize) override
