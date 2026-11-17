@@ -1,0 +1,41 @@
+name: Build Amenity
+
+on:
+  push:
+    branches: [amenity]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build Amenity for MPC (arm32 + arm64 + native) and validate
+        run: python tools/build.py plugins/Amenity
+      - name: Make a test break
+        run: |
+          mkdir -p "$RUNNER_TEMP/amenity-test/Samples"
+          cp plugins/Amenity/plugin.json "$RUNNER_TEMP/amenity-test/"
+          python plugins/Amenity/tests/make_test_break.py "$RUNNER_TEMP/amenity-test/Samples/160 test break.wav"
+      - name: Run the host simulator test (pattern running, one pad per group held)
+        run: |
+          for notes in 36 40 48 52 60 61 62; do
+            echo "::group::notes $notes"
+            MPC_PLUGIN_FOLDER="$RUNNER_TEMP/amenity-test" .sdk-tools/host_sim plugins/Amenity/build/native/amenity.so test --seconds 3 --playing --notes $notes
+            echo "::endgroup::"
+          done
+      - name: Add the Samples folder to the plugin
+        run: |
+          mkdir -p "plugins/Amenity/build/RS - VST - Amenity/Samples"
+          cp plugins/Amenity/Content/Samples/README.txt "plugins/Amenity/build/RS - VST - Amenity/Samples/README.txt"
+      - name: Package
+        run: python tools/package.py plugins/Amenity
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RS-VST-Amenity
+          path: |
+            plugins/Amenity/build/RS - VST - Amenity
+            plugins/Amenity/dist/*.zip

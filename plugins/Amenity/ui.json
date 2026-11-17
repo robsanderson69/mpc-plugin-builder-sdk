@@ -1,0 +1,41 @@
+{
+  "kit": "amber",
+  "pages": [
+    {
+      "name": "BREAK",
+      "controls": [
+        { "param": "Volume",    "widget": "fader" },
+        { "param": "Sample",    "widget": "slider", "overlay": "menu" },
+        { "param": "Pattern",   "widget": "switch" },
+        { "param": "Time",      "widget": "switch" },
+        { "param": "Variation", "widget": "knob" },
+        { "param": "Warp",      "widget": "knob" },
+        { "param": "Filter",    "widget": "knob", "polarity": "bipolar" },
+        { "param": "Feedback",  "widget": "knob" },
+        { "param": "Fb Root",   "widget": "slider", "overlay": "menu" },
+        { "param": "Transpose", "widget": "knob", "polarity": "bipolar" },
+        { "param": "SEQ Fill",  "widget": "switch" },
+        { "param": "Freeze",    "widget": "switch" }
+      ]
+    },
+    {
+      "name": "FX",
+      "controls": [
+        { "param": "Lo-Fi",     "widget": "knob" },
+        { "param": "Saturate",  "widget": "knob" },
+        { "param": "Compress",  "widget": "knob" },
+        { "param": "Stretch",   "widget": "switch" }
+      ]
+    },
+    {
+      "name": "EQ",
+      "controls": [
+        { "param": "EQ Low",      "widget": "knob", "polarity": "bipolar" },
+        { "param": "EQ Low Mid",  "widget": "knob", "polarity": "bipolar" },
+        { "param": "EQ High Mid", "widget": "knob", "polarity": "bipolar" },
+        { "param": "EQ High",     "widget": "knob", "polarity": "bipolar" }
+      ]
+    }
+  ],
+  "style": { "background": "ff1e1d1e", "accent": "ffff9d1c", "text": "ffffffff", "muted": "ff6a6a6c" }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Amenity",
+  "manufacturer": "RS",
+  "version": "1.0.0",
+  "format": "vst2",
+  "kind": "instrument",
+  "uid": "Ro1q",
+  "numInputs": 0,
+  "numOutputs": 2,
+  "category": "Instrument",
+  "file32": "VST/amenity-arm32.so",
+  "file64": "VST/amenity-arm64.so",
+  "description": "Amenity: a live jungle break slicer. Load a break from the Samples folder, tear it up with the pads.",
+  "author": "RS",
+  "url": "",
+  "license": "GPL-3.0-only"
+}
